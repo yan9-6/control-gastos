@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control Financiero Personal & Presupuesto (COP)</title>
+  <style>
+    :root {
+      --bg-color: #0b1329;
+      --card-bg: #1e293b;
+      --card-bg-light: #283548;
+      --card-border: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --purple: #8b5cf6;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-sans); }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    h1 { font-size: 1.4rem; font-weight: 700; color: #fff; }
+    h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; }
+
+    .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 8px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.88rem;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover { color: var(--text-main); background-color: var(--card-bg); }
+    .tab-btn.active {
+      background-color: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .card-title {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .card-value { font-size: 1.35rem; font-weight: 700; }
+    .val-income { color: var(--success); }
+    .val-expense { color: var(--danger); }
+    .val-balance { color: var(--accent); }
+    .val-fixed-exp { color: var(--danger); }
+    .val-fixed-inc { color: var(--success); }
+
+    .view-container { display: none; }
+    .view-container.active { display: block; }
+
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .grid-2col { grid-template-columns: 1fr; }
+    }
+
+    form { display: flex; flex-direction: column; gap: 12px; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    label { font-size: 0.82rem; font-weight: 500; color: var(--text-muted); }
+
+    input, select {
+      background-color: #0b1329;
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+
+    input:focus, select:focus { border-color: var(--accent); }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background-color: #0b1329;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .checkbox-group input {
+      width: auto;
+      cursor: pointer;
+    }
+    .checkbox-group label {
+      cursor: pointer;
+      color: var(--text-main);
+      font-size: 0.85rem;
+    }
+
+    .btn {
+      background-color: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 8px 13px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      transition: background-color 0.2s;
+    }
+
+    .btn:hover { background-color: var(--accent-hover); }
+
+    .btn-secondary {
+      background-color: transparent;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+    }
+    .btn-secondary:hover { background-color: #334155; color: var(--text-main); }
+
+    .btn-success { background-color: var(--success); }
+    .btn-success:hover { background-color: #059669; }
+
+    .btn-warning { background-color: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid var(--warning); }
+    .btn-warning:hover { background-color: var(--warning); color: #000; }
+
+    .btn-danger {
+      background-color: rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 4px 8px;
+      font-size: 0.78rem;
+    }
+    .btn-danger:hover { background-color: var(--danger); color: #fff; }
+
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; }
+    th {
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+    }
+    td { padding: 10px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.4); vertical-align: middle; }
+    tr:hover td { background-color: rgba(255, 255, 255, 0.02); }
+
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .tag-income { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+    .tag-expense { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+    .tag-transfer { background: rgba(59, 130, 246, 0.15); color: var(--accent); }
+    .tag-due-today { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+    .tag-due-soon { background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid var(--warning); }
+    .tag-due-ok { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+    .tag-paid { background: rgba(148, 163, 184, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+
+    .dashboard-due-card {
+      background: linear-gradient(180deg, #1e293b 0%, #172033 100%);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .chart-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 10px;
+    }
+    .bar-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .bar-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+    }
+    .bar-track {
+      background-color: #0f172a;
+      height: 14px;
+      border-radius: 7px;
+      overflow: hidden;
+      display: flex;
+      position: relative;
+    }
+    .bar-fill {
+      height: 100%;
+      transition: width 0.4s ease;
+    }
+    .bar-income { background-color: var(--success); }
+    .bar-expense { background-color: var(--danger); }
+    .bar-budget-ok { background-color: var(--accent); }
+    .bar-budget-warn { background-color: var(--warning); }
+    .bar-budget-danger { background-color: var(--danger); }
+
+    .budget-card {
+      background: var(--card-bg-light);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .recommendation-list { display: flex; flex-direction: column; gap: 12px; }
+    .rec-item {
+      padding: 14px;
+      border-radius: 10px;
+      border-left: 4px solid;
+      background: var(--card-bg-light);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .rec-danger { border-color: var(--danger); }
+    .rec-warning { border-color: var(--warning); }
+    .rec-info { border-color: var(--accent); }
+    .rec-success { border-color: var(--success); }
+    .rec-title { font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; }
+    .rec-desc { font-size: 0.85rem; color: #cbd5e1; line-height: 1.4; }
+
+    .reminder-banner {
+      background: linear-gradient(90deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.15));
+      border: 1px solid var(--warning);
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.9rem;
+    }
+
+    #importInput { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div>
+        <h1>Control Financiero Personal</h1>
+        <small style="color: var(--text-muted);">Gastos & Ingresos Recurrentes, Automatizaciones & Presupuestos (COP)</small>
+      </div>
+      <div class="header-actions">
+        <span id="syncIndicator" style="font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; padding: 0 8px;">
+          <span id="syncDot" style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#94a3b8;"></span>
+          <span id="syncText">Local</span>
+        </span>
+        <button class="btn btn-secondary" onclick="syncNow()">🔄 Sincronizar Nube</button>
+        <button class="btn btn-secondary" onclick="exportToCSV()">📊 Exportar CSV</button>
+        <button class="btn btn-secondary" onclick="StorageManager.exportBackup()">📥 Backup JSON</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('importInput').click()">📤 Restaurar</button>
+        <input type="file" id="importInput" accept=".json" onchange="handleImport(event)">
+      </div>
+    </header>
+
+    <div id="quickReminderBanner" class="reminder-banner" style="display: none;">
+      <div id="reminderBannerText"></div>
+      <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;" onclick="switchTab('tab-recurring')">Ver Recurrentes</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('tab-dashboard')">📊 Resumen & Movimientos</button>
+      <button class="tab-btn" onclick="switchTab('tab-recurring')">📅 Ingresos & Gastos Fijos</button>
+      <button class="tab-btn" onclick="switchTab('tab-analytics')">📈 Gráficos & Presupuestos</button>
+      <button class="tab-btn" onclick="switchTab('tab-recommendations')">💡 Motor de Recomendaciones</button>
+      <button class="tab-btn" onclick="switchTab('tab-settings')">⚙️ Cuentas & Categorías</button>
+    </div>
+
+    <!-- PESTAÑA 1: DASHBOARD Y MOVIMIENTOS -->
+    <div id="tab-dashboard" class="view-container active">
+      <!-- 1. Tarjetas de Resumen Numérico Principal -->
+      <div class="summary-grid" style="margin-bottom: 20px;">
+        <div class="card">
+          <div class="card-title">Balance Total Cuentas</div>
+          <div id="statBalance" class="card-value val-balance">$0</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Ingresos del Mes</div>
+          <div id="statIncome" class="card-value val-income">$0</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Gastos del Mes</div>
+          <div id="statExpense" class="card-value val-expense">$0</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Ingresos Fijos Proyectados</div>
+          <div id="statFixedIncMonth" class="card-value val-fixed-inc">$0</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Gastos Fijos Proyectados</div>
+          <div id="statFixedExpMonth" class="card-value val-fixed-exp">$0</div>
+        </div>
+      </div>
+
+      <!-- 2. Registro de Movimientos e Historial (Prioritario al inicio del Dashboard) -->
+      <div class="grid-2col" style="margin-bottom: 20px;">
+        <div class="card">
+          <h2>Registrar Movimiento</h2>
+          <form id="txForm" onsubmit="handleTxSubmit(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="txType">Tipo de Operación</label>
+                <select id="txType" required onchange="handleTxTypeChange()">
+                  <option value="gasto">Gasto</option>
+                  <option value="ingreso">Ingreso</option>
+                  <option value="transferencia">Transferencia entre Cuentas</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="txAmount">Monto (COP)</label>
+                <input type="number" id="txAmount" placeholder="Ej: 80000" min="1" step="1" required>
+              </div>
+            </div>
+
+            <div class="form-group" id="groupAccount">
+              <label for="txAccount" id="lblTxAccount">Cuenta de Origen</label>
+              <select id="txAccount" required></select>
+            </div>
+
+            <div class="form-group" id="groupTargetAccount" style="display: none;">
+              <label for="txTargetAccount">Cuenta de Destino</label>
+              <select id="txTargetAccount"></select>
+            </div>
+
+            <div class="form-group" id="groupCategory">
+              <label for="txCategory">Categoría</label>
+              <select id="txCategory"></select>
+            </div>
+
+            <div class="form-group">
+              <label for="txDate">Fecha</label>
+              <input type="date" id="txDate" required>
+            </div>
+
+            <div class="form-group">
+              <label for="txDesc">Descripción / Detalle</label>
+              <input type="text" id="txDesc" placeholder="Ej: Pago de recibo / Mercado semanal">
+            </div>
+
+            <button type="submit" class="btn" style="margin-top: 6px;">Guardar Movimiento</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <h2>Historial de Movimientos</h2>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <input type="month" id="filterMonth" style="width: auto;" onchange="renderDashboard()">
+              <select id="filterAccount" style="width: auto;" onchange="renderDashboard()">
+                <option value="all">Todas las cuentas</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Descripción</th>
+                  <th>Categoría / Tipo</th>
+                  <th>Cuenta(s)</th>
+                  <th>Monto</th>
+                  <th style="text-align: right;">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="txTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Panel de Resumen de Próximos Vencimientos Manuales (Ubicado abajo) -->
+      <div class="dashboard-due-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div>
+            <h2 style="font-size: 1rem; margin-bottom: 2px;">⏰ Próximos Pagos Pendientes (Acción Manual Requerida)</h2>
+            <small style="color: var(--text-muted);">Solo se listan las obligaciones fijas que requieren que tú realices y confirmes el pago.</small>
+          </div>
+          <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;" onclick="switchTab('tab-recurring')">Gestionar Todos ➔</button>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Obligación / Servicio</th>
+                <th>Cuenta Débito</th>
+                <th>Día Límite</th>
+                <th>Monto Estimado</th>
+                <th>Estado de Pago</th>
+                <th style="text-align: right;">Acción Rápida</th>
+              </tr>
+            </thead>
+            <tbody id="dashboardDueTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 2: INGRESOS & GASTOS FIJOS (RECURRENTES) -->
+    <div id="tab-recurring" class="view-container">
+      <div class="grid-2col">
+        <div class="card">
+          <h2 id="recurringFormTitle">Programar Flujo Recurrente</h2>
+          <form id="recurringForm" onsubmit="handleRecurringSubmit(event)">
+            <input type="hidden" id="recEditId" value="">
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="recType">Tipo</label>
+                <select id="recType" required onchange="updateRecurringCategorySelect()">
+                  <option value="ingreso">Ingreso Fijo (Salario, Renta, etc.)</option>
+                  <option value="gasto">Gasto Fijo (Servicio, Arriendo, etc.)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="recFrequency">Frecuencia</label>
+                <select id="recFrequency" required onchange="handleRecFrequencyChange()">
+                  <option value="quincenal">Quincenal (Días 15 y 30)</option>
+                  <option value="mensual">Mensual (1 día al mes)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="recName">Concepto / Nombre</label>
+              <input type="text" id="recName" placeholder="Ej: Salario Nómina / Débito Automático Seguro" required>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="recAmount">Monto por Pago (COP)</label>
+                <input type="number" id="recAmount" placeholder="Ej: 1500000" min="1" step="1" required>
+              </div>
+              <div class="form-group" id="grpRecDueDay">
+                <label for="recDueDay" id="lblRecDueDay">Día de Pago / Cobro</label>
+                <input type="number" id="recDueDay" min="1" max="31" placeholder="Ej: 15" value="15" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="recAccount" id="lblRecAccount">Cuenta Destino / Origen</label>
+              <select id="recAccount" required></select>
+            </div>
+
+            <div class="form-group">
+              <label for="recCategory">Categoría</label>
+              <select id="recCategory" required></select>
+            </div>
+
+            <div class="checkbox-group">
+              <input type="checkbox" id="recIsAuto">
+              <label for="recIsAuto">
+                ⚡ <strong>Registro Automático:</strong> Contabilizar automáticamente al llegar la fecha sin requerir marcado manual (ej. Nómina fija, débitos automáticos bancarios).
+              </label>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 6px;">
+              <button type="submit" id="btnSubmitRec" class="btn btn-success" style="flex: 1;">Guardar Programación</button>
+              <button type="button" id="btnCancelRecEdit" class="btn btn-secondary" style="display: none;" onclick="cancelRecurringEdit()">Cancelar</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Flujos Recurrentes del Mes</h2>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+            Monitorea el cumplimiento de tus cobros y pagos. Los marcados como automáticos se registran solos al llegar su fecha.
+          </p>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Concepto</th>
+                  <th>Tipo</th>
+                  <th>Día(s)</th>
+                  <th>Monto</th>
+                  <th>Modalidad / Estado</th>
+                  <th style="text-align: right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="recurringTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 3: GRÁFICOS Y PRESUPUESTOS -->
+    <div id="tab-analytics" class="view-container">
+      <div class="grid-2col">
+        <div class="card">
+          <h2>Comparativa & Distribución del Mes</h2>
+          <div class="chart-container" id="analyticsChartContainer"></div>
+        </div>
+
+        <div class="card">
+          <h2>Control de Presupuestos por Categoría</h2>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+            Define topes máximos de gasto mensual para cada categoría y monitorea tu nivel de ejecución en tiempo real.
+          </p>
+          <div class="chart-container" id="budgetProgressContainer"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 4: MOTOR DE RECOMENDACIONES -->
+    <div id="tab-recommendations" class="view-container">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <div>
+            <h2>Diagnóstico Financiero y Recomendaciones</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Análisis dinámico sobre ingresos fijos vs. gastos fijos, flujo de caja proyectado y presupuestos.
+            </p>
+          </div>
+          <button class="btn btn-secondary" onclick="renderRecommendations()">🔄 Reanalizar</button>
+        </div>
+        <div class="recommendation-list" id="recommendationList"></div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 5: CONFIGURACIÓN DE CUENTAS Y CATEGORÍAS -->
+    <div id="tab-settings" class="view-container">
+      <div class="grid-2col">
+        <div class="card">
+          <h2>Cuentas y Métodos de Pago</h2>
+          <form id="accountForm" onsubmit="handleAccountSubmit(event)" style="margin-bottom: 16px;">
+            <div class="form-group">
+              <label for="accName">Nombre de Cuenta / Tarjeta</label>
+              <input type="text" id="accName" placeholder="Ej: Cuenta Nómina / Tarjeta Crédito" required>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="accType">Tipo</label>
+                <select id="accType" required>
+                  <option value="ahorros">Cuenta de Ahorros</option>
+                  <option value="corriente">Cuenta Corriente</option>
+                  <option value="credito">Tarjeta de Crédito</option>
+                  <option value="efectivo">Efectivo / Billetera</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="accBalance">Saldo Inicial (COP)</label>
+                <input type="number" id="accBalance" value="0" step="1" required>
+              </div>
+            </div>
+            <button type="submit" class="btn">Agregar Cuenta</button>
+          </form>
+
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Tipo</th>
+                  <th>Saldo Actual</th>
+                  <th style="text-align: right;">Eliminar</th>
+                </tr>
+              </thead>
+              <tbody id="accountsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Gestión de Categorías & Presupuestos</h2>
+          <form id="categoryForm" onsubmit="handleCategorySubmit(event)" style="margin-bottom: 16px;">
+            <div class="form-group">
+              <label for="catName">Nombre de Categoría</label>
+              <input type="text" id="catName" placeholder="Ej: Salud, Mascotas, Educación" required>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="catType">Aplica para</label>
+                <select id="catType" required onchange="handleCatTypeChange()">
+                  <option value="gasto">Gasto</option>
+                  <option value="ingreso">Ingreso</option>
+                </select>
+              </div>
+              <div class="form-group" id="groupCatBudget">
+                <label for="catBudget">Presupuesto Mensual COP (0 = sin límite)</label>
+                <input type="number" id="catBudget" value="0" min="0" step="1000">
+              </div>
+            </div>
+            <button type="submit" class="btn">Agregar Categoría</button>
+          </form>
+
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Categoría</th>
+                  <th>Tipo</th>
+                  <th>Presupuesto</th>
+                  <th style="text-align: right;">Eliminar</th>
+                </tr>
+              </thead>
+              <tbody id="categoriesTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Configuración de Backend en Google Sheets -->
+      <div class="card" style="margin-top: 20px;">
+        <h2>☁️ Conexión con Google Sheets (Nube Personal)</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+          Pega aquí la URL de la aplicación web que obtuviste en Google Apps Script para sincronizar automáticamente tus datos entre todos tus dispositivos.
+        </p>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <input type="url" id="apiEndpointInput" placeholder="https://script.google.com/macros/s/.../exec" style="flex: 1; min-width: 260px;">
+          <button class="btn btn-success" onclick="saveApiEndpoint()">Guardar y Conectar</button>
+          <button class="btn btn-danger" onclick="clearApiEndpoint()">Desconectar</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // -------------------------------------------------------------
+    // 1. ESQUEMA DE DATOS Y PERSISTENCIA
+    // -------------------------------------------------------------
+    const STORAGE_KEY = "control_gastos_full_app_v4";
+
+    const DEFAULT_SCHEMA = {
+      version: "4.3",
+      currency: "COP",
+      accounts: [
+        { id: "acc_1", name: "Cuenta Nómina (Banco)", type: "ahorros", initialBalance: 0 },
+        { id: "acc_2", name: "Tarjeta de Crédito", type: "credito", initialBalance: 0 },
+        { id: "acc_3", name: "Efectivo", type: "efectivo", initialBalance: 0 }
+      ],
+      categories: [
+        { id: "cat_1", name: "Servicios Públicos (Agua/Luz/Gas)", type: "gasto", budget: 300000 },
+        { id: "cat_2", name: "Telecomunicaciones (Internet/Plan)", type: "gasto", budget: 150000 },
+        { id: "cat_3", name: "Alimentación y Supermercado", type: "gasto", budget: 800000 },
+        { id: "cat_4", name: "Vivienda y Arriendo", type: "gasto", budget: 1200000 },
+        { id: "cat_5", name: "Transporte / Movilidad", type: "gasto", budget: 200000 },
+        { id: "cat_6", name: "Suscripciones Digitales", type: "gasto", budget: 60000 },
+        { id: "cat_7", name: "Salario Principal", type: "ingreso", budget: 0 },
+        { id: "cat_8", name: "Honorarios / Extras", type: "ingreso", budget: 0 }
+      ],
+      recurringItems: [
+        { id: "rec_inc_1", name: "Salario Nómina", type: "ingreso", frequency: "quincenal", amount: 2000000, dueDays: [15, 30], accountId: "acc_1", categoryId: "cat_7", isAuto: true },
+        { id: "rec_exp_1", name: "Enel (Energía)", type: "gasto", frequency: "mensual", amount: 140000, dueDays: [10], accountId: "acc_1", categoryId: "cat_1", isAuto: false },
+        { id: "rec_exp_2", name: "Vanti (Gas Natural)", type: "gasto", frequency: "mensual", amount: 35000, dueDays: [14], accountId: "acc_1", categoryId: "cat_1", isAuto: false },
+        { id: "rec_exp_3", name: "Internet Fibra Óptica", type: "gasto", frequency: "mensual", amount: 95000, dueDays: [20], accountId: "acc_1", categoryId: "cat_2", isAuto: false }
+      ],
+      transactions: []
+    };
+
+    const CLOUD_URL_KEY = "control_gastos_cloud_api_url";
+    let isSyncing = false;
+
+    async function pushToCloud(data) {
+      const endpoint = localStorage.getItem(CLOUD_URL_KEY);
+      if (!endpoint || isSyncing) return;
+      
+      updateSyncUI("syncing", "Guardando en Google Sheets...");
+      try {
+        isSyncing = true;
+        await fetch(endpoint, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        updateSyncUI("online", "Sincronizado");
+      } catch (err) {
+        console.warn("Error al guardar en la nube:", err);
+        updateSyncUI("offline", "Error de sincronización");
+      } finally {
+        isSyncing = false;
+      }
+    }
+
+    async function fetchFromCloud(endpointUrl) {
+      const endpoint = endpointUrl || localStorage.getItem(CLOUD_URL_KEY);
+      if (!endpoint) return null;
+
+      updateSyncUI("syncing", "Descargando de Google Sheets...");
+      try {
+        const res = await fetch(endpoint);
+        const json = await res.json();
+        if (json && json.status === "success" && json.data) {
+          updateSyncUI("online", "Sincronizado");
+          return json.data;
+        }
+        updateSyncUI("online", "Nube conectada");
+        return null;
+      } catch (err) {
+        console.warn("No se pudo conectar con la nube:", err);
+        updateSyncUI("offline", "Sin conexión");
+        return null;
+      }
+    }
+
+    function updateSyncUI(status, text) {
+      const dot = document.getElementById("syncDot");
+      const txt = document.getElementById("syncText");
+      if (!dot || !txt) return;
+
+      if (status === "online") {
+        dot.style.backgroundColor = "var(--success)";
+      } else if (status === "syncing") {
+        dot.style.backgroundColor = "var(--warning)";
+      } else if (status === "offline") {
+        dot.style.backgroundColor = "var(--danger)";
+      } else {
+        dot.style.backgroundColor = "#94a3b8";
+      }
+      txt.textContent = text;
+    }
+
+    function saveApiEndpoint() {
+      const url = document.getElementById("apiEndpointInput").value.trim();
+      if (!url) {
+        alert("Por favor ingresa una URL válida.");
+        return;
+      }
+      localStorage.setItem(CLOUD_URL_KEY, url);
+      alert("Enlace guardado. Iniciando sincronización con Google Sheets...");
+      syncNow();
+    }
+
+    function clearApiEndpoint() {
+      if (confirm("¿Desconectar la sincronización en la nube? La app continuará funcionando de forma local.")) {
+        localStorage.removeItem(CLOUD_URL_KEY);
+        document.getElementById("apiEndpointInput").value = "";
+        updateSyncUI("local", "Local");
+      }
+    }
+
+    async function syncNow() {
+      const endpoint = localStorage.getItem(CLOUD_URL_KEY);
+      if (!endpoint) {
+        switchTab("tab-settings");
+        document.getElementById("apiEndpointInput").focus();
+        alert("Primero configura tu URL de Google Apps Script en Configuración.");
+        return;
+      }
+      
+      const remoteData = await fetchFromCloud(endpoint);
+      if (remoteData) {
+        state = remoteData;
+        StorageManager.saveData(state, false); // Guardar en local sin re-enviar
+        updateAllSelectors();
+        renderDashboard();
+        alert("Datos descargados y sincronizados correctamente.");
+      } else {
+        // Si no hay datos remotos, enviar el estado actual a la nube
+        await pushToCloud(state);
+      }
+    }
+
+    const StorageManager = {
+      loadData() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) {
+            const oldV3 = localStorage.getItem("control_gastos_full_app_v3") || localStorage.getItem("control_gastos_full_app_v2");
+            if (oldV3) {
+              const parsed = JSON.parse(oldV3);
+              parsed.version = "4.3";
+              parsed.recurringItems = [];
+              if (parsed.recurringExpenses) {
+                parsed.recurringExpenses.forEach(r => {
+                  parsed.recurringItems.push({
+                    id: r.id,
+                    name: r.name,
+                    type: "gasto",
+                    frequency: "mensual",
+                    amount: Number(r.amount),
+                    dueDays: [Number(r.dueDay) || 15],
+                    accountId: r.accountId,
+                    categoryId: r.categoryId,
+                    isAuto: false
+                  });
+                });
+              }
+              this.saveData(parsed);
+              return parsed;
+            }
+            this.saveData(DEFAULT_SCHEMA);
+            return JSON.parse(JSON.stringify(DEFAULT_SCHEMA));
+          }
+          const parsed = JSON.parse(raw);
+          if (!parsed.recurringItems) parsed.recurringItems = DEFAULT_SCHEMA.recurringItems;
+          parsed.recurringItems.forEach(r => { if (r.isAuto === undefined) r.isAuto = false; });
+          return parsed;
+        } catch (e) {
+          console.error("Error al cargar localStorage:", e);
+          return JSON.parse(JSON.stringify(DEFAULT_SCHEMA));
+        }
+      },
+      saveData(data, syncRemote = true) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          if (syncRemote) {
+            pushToCloud(data);
+          }
+          return true;
+        } catch (e) {
+          alert("Error guardando datos localmente.");
+          return false;
+        }
+      },
+      exportBackup() {
+        const data = this.loadData();
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `backup_finanzas_${new Date().toISOString().split("T")[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      importBackup(file, cb) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const data = JSON.parse(e.target.result);
+            if (data && data.accounts && data.categories) {
+              this.saveData(data);
+              if (cb) cb(data);
+              alert("Datos restaurados exitosamente.");
+            } else {
+              alert("Estructura de JSON inválida.");
+            }
+          } catch (err) {
+            alert("Archivo no compatible.");
+          }
+        };
+        reader.readAsText(file);
+      }
+    };
+
+    let state = StorageManager.loadData();
+
+    // -------------------------------------------------------------
+    // 2. PROCESAMIENTO AUTOMÁTICO DE RECURRENTES (AUTOMÁTICOS)
+    // -------------------------------------------------------------
+    function processAutoRecurring() {
+      const today = new Date();
+      const currentDay = today.getDate();
+      const currentMonthStr = today.toISOString().slice(0, 7);
+      let createdCount = 0;
+
+      state.recurringItems.filter(r => r.isAuto).forEach(rec => {
+        rec.dueDays.forEach(day => {
+          if (currentDay >= day) {
+            const occId = `${rec.id}_occ_${day}`;
+            const exists = state.transactions.some(tx => tx.recurringId === occId && tx.date.startsWith(currentMonthStr));
+
+            if (!exists) {
+              const dayPadded = String(day).padStart(2, '0');
+              const txDate = `${currentMonthStr}-${dayPadded}`;
+              const isInc = rec.type === 'ingreso';
+
+              const newTx = {
+                id: "tx_auto_" + Date.now() + "_" + Math.floor(Math.random()*1000),
+                recurringId: occId,
+                type: rec.type,
+                amount: rec.amount,
+                accountId: rec.accountId,
+                categoryId: rec.categoryId,
+                date: txDate,
+                description: `⚡ Automático: ${rec.name} (Día ${day})`
+              };
+
+              state.transactions.unshift(newTx);
+              createdCount++;
+            }
+          }
+        });
+      });
+
+      if (createdCount > 0) {
+        StorageManager.saveData(state);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 3. UTILIDADES & EXPORTACIÓN CSV
+    // -------------------------------------------------------------
+    function formatCOP(num) {
+      return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        maximumFractionDigits: 0
+      }).format(num);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById(tabId).classList.add('active');
+      const targetBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => btn.getAttribute('onclick')?.includes(tabId));
+      if (targetBtn) targetBtn.classList.add('active');
+
+      if (tabId === 'tab-dashboard') renderDashboard();
+      if (tabId === 'tab-recurring') renderRecurringTab();
+      if (tabId === 'tab-analytics') renderAnalytics();
+      if (tabId === 'tab-recommendations') renderRecommendations();
+      if (tabId === 'tab-settings') renderSettings();
+    }
+
+    function exportToCSV() {
+      const selectedMonth = document.getElementById('filterMonth').value;
+      const filtered = state.transactions.filter(tx => !selectedMonth || tx.date.startsWith(selectedMonth));
+
+      if (filtered.length === 0) {
+        alert("No hay transacciones para exportar en el período seleccionado.");
+        return;
+      }
+
+      let csvContent = "Fecha,Tipo,Monto COP,Cuenta Origen,Cuenta Destino,Categoria,Descripcion,Recurrente ID\n";
+
+      filtered.forEach(tx => {
+        const accFrom = state.accounts.find(a => a.id === tx.accountId)?.name || tx.accountId;
+        const accTo = tx.targetAccountId ? (state.accounts.find(a => a.id === tx.targetAccountId)?.name || tx.targetAccountId) : "";
+        const cat = state.categories.find(c => c.id === tx.categoryId)?.name || "";
+        const desc = (tx.description || "").replace(/"/g, '""');
+
+        csvContent += `"${tx.date}","${tx.type}","${tx.amount}","${accFrom}","${accTo}","${cat}","${desc}","${tx.recurringId || ""}"\n`;
+      });
+
+      const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `reporte_gastos_${selectedMonth || 'completo'}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // -------------------------------------------------------------
+    // 4. SELECTORES DINÁMICOS & INTERACCIÓN FORMULARIOS
+    // -------------------------------------------------------------
+    function updateAllSelectors() {
+      const accSelects = ['txAccount', 'txTargetAccount', 'recAccount'];
+      accSelects.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = '';
+        state.accounts.forEach(acc => {
+          const opt = document.createElement('option');
+          opt.value = acc.id;
+          opt.textContent = `${acc.name} (${acc.type.toUpperCase()})`;
+          el.appendChild(opt);
+        });
+      });
+
+      const filterAcc = document.getElementById('filterAccount');
+      filterAcc.innerHTML = '<option value="all">Todas las cuentas</option>';
+      state.accounts.forEach(acc => {
+        const opt = document.createElement('option');
+        opt.value = acc.id;
+        opt.textContent = acc.name;
+        filterAcc.appendChild(opt);
+      });
+
+      updateCategorySelects();
+      updateRecurringCategorySelect();
+    }
+
+    function handleTxTypeChange() {
+      const txType = document.getElementById('txType').value;
+      const grpTarget = document.getElementById('groupTargetAccount');
+      const grpCat = document.getElementById('groupCategory');
+      const lblAccount = document.getElementById('lblTxAccount');
+
+      if (txType === 'transferencia') {
+        grpTarget.style.display = 'flex';
+        grpCat.style.display = 'none';
+        lblAccount.textContent = 'Cuenta de Origen (Debita)';
+      } else {
+        grpTarget.style.display = 'none';
+        grpCat.style.display = 'flex';
+        lblAccount.textContent = txType === 'ingreso' ? 'Cuenta de Destino (Acredita)' : 'Cuenta de Origen';
+        updateCategorySelects();
+      }
+    }
+
+    function handleCatTypeChange() {
+      const type = document.getElementById('catType').value;
+      const budgetGrp = document.getElementById('groupCatBudget');
+      budgetGrp.style.display = type === 'gasto' ? 'flex' : 'none';
+    }
+
+    function handleRecFrequencyChange() {
+      const freq = document.getElementById('recFrequency').value;
+      const grpDue = document.getElementById('grpRecDueDay');
+      if (freq === 'quincenal') {
+        grpDue.style.display = 'none';
+      } else {
+        grpDue.style.display = 'flex';
+      }
+    }
+
+    function updateCategorySelects() {
+      const txType = document.getElementById('txType').value;
+      const txCat = document.getElementById('txCategory');
+      txCat.innerHTML = '';
+      state.categories.filter(c => c.type === txType).forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.name;
+        txCat.appendChild(opt);
+      });
+    }
+
+    function updateRecurringCategorySelect() {
+      const recType = document.getElementById('recType').value;
+      const recCat = document.getElementById('recCategory');
+      const lblRecAccount = document.getElementById('lblRecAccount');
+      if (!recCat) return;
+
+      recCat.innerHTML = '';
+      state.categories.filter(c => c.type === recType).forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.name;
+        recCat.appendChild(opt);
+      });
+
+      if (lblRecAccount) {
+        lblRecAccount.textContent = recType === 'ingreso' ? 'Cuenta de Destino (Acreditar)' : 'Cuenta por Defecto (Debitar)';
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 5. RENDERS DE VISTAS
+    // -------------------------------------------------------------
+    function renderDashboard() {
+      processAutoRecurring();
+
+      const selectedMonth = document.getElementById('filterMonth').value;
+      const selectedAcc = document.getElementById('filterAccount').value;
+
+      const balances = {};
+      state.accounts.forEach(a => balances[a.id] = (Number(a.initialBalance) || 0));
+
+      state.transactions.forEach(tx => {
+        if (tx.type === 'ingreso') {
+          if (balances[tx.accountId] !== undefined) balances[tx.accountId] += Number(tx.amount);
+        } else if (tx.type === 'gasto') {
+          if (balances[tx.accountId] !== undefined) balances[tx.accountId] -= Number(tx.amount);
+        } else if (tx.type === 'transferencia') {
+          if (balances[tx.accountId] !== undefined) balances[tx.accountId] -= Number(tx.amount);
+          if (balances[tx.targetAccountId] !== undefined) balances[tx.targetAccountId] += Number(tx.amount);
+        }
+      });
+
+      const totalBalance = Object.values(balances).reduce((a, b) => a + b, 0);
+
+      const filtered = state.transactions.filter(tx => {
+        const mOk = !selectedMonth || tx.date.startsWith(selectedMonth);
+        const aOk = selectedAcc === 'all' || tx.accountId === selectedAcc || tx.targetAccountId === selectedAcc;
+        return mOk && aOk;
+      });
+
+      let incMonth = 0;
+      let expMonth = 0;
+      filtered.forEach(tx => {
+        if (tx.type === 'ingreso') incMonth += Number(tx.amount);
+        if (tx.type === 'gasto') expMonth += Number(tx.amount);
+      });
+
+      let fixedIncMonth = 0;
+      let fixedExpMonth = 0;
+
+      state.recurringItems.forEach(rec => {
+        const factor = (rec.frequency === 'quincenal') ? 2 : 1;
+        const totalRec = Number(rec.amount) * factor;
+        if (rec.type === 'ingreso') fixedIncMonth += totalRec;
+        if (rec.type === 'gasto') fixedExpMonth += totalRec;
+      });
+
+      document.getElementById('statBalance').textContent = formatCOP(totalBalance);
+      document.getElementById('statIncome').textContent = formatCOP(incMonth);
+      document.getElementById('statExpense').textContent = formatCOP(expMonth);
+      document.getElementById('statFixedIncMonth').textContent = formatCOP(fixedIncMonth);
+      document.getElementById('statFixedExpMonth').textContent = formatCOP(fixedExpMonth);
+
+      // Renderizar tabla de movimientos
+      const tbody = document.getElementById('txTableBody');
+      tbody.innerHTML = '';
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-muted)">No hay registros para este período.</td></tr>`;
+      } else {
+        filtered.forEach(tx => {
+          let catOrType = '';
+          let accountsCol = '';
+          let amountCol = '';
+
+          if (tx.type === 'transferencia') {
+            const fromAcc = state.accounts.find(a => a.id === tx.accountId)?.name || 'Cuenta Origen';
+            const toAcc = state.accounts.find(a => a.id === tx.targetAccountId)?.name || 'Cuenta Destino';
+            catOrType = `<span class="tag tag-transfer">TRANSFERENCIA</span>`;
+            accountsCol = `<small>${fromAcc} ➔ ${toAcc}</small>`;
+            amountCol = `<span style="font-weight:600; color:var(--accent);">${formatCOP(tx.amount)}</span>`;
+          } else {
+            const isInc = tx.type === 'ingreso';
+            const cat = state.categories.find(c => c.id === tx.categoryId)?.name || 'General';
+            const acc = state.accounts.find(a => a.id === tx.accountId)?.name || 'Cuenta';
+            catOrType = `<span class="tag ${isInc ? 'tag-income' : 'tag-expense'}">${cat}</span>`;
+            accountsCol = `<span style="color:var(--text-muted);">${acc}</span>`;
+            amountCol = `<span style="font-weight:600; color:${isInc ? 'var(--success)' : 'var(--danger)'}">
+              ${isInc ? '+' : '-'} ${formatCOP(tx.amount)}
+            </span>`;
+          }
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${tx.date}</td>
+            <td>${tx.description || '-'} ${tx.recurringId ? '<small style="color:var(--accent);">(Fijo)</small>' : ''}</td>
+            <td>${catOrType}</td>
+            <td>${accountsCol}</td>
+            <td>${amountCol}</td>
+            <td style="text-align: right;">
+              <button class="btn btn-danger" onclick="deleteTransaction('${tx.id}')">✕</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      renderDashboardDueTable();
+      checkReminders();
+    }
+
+    function renderDashboardDueTable() {
+      const tbody = document.getElementById('dashboardDueTableBody');
+      tbody.innerHTML = '';
+
+      const currentDay = new Date().getDate();
+      const currentMonthStr = new Date().toISOString().slice(0, 7);
+
+      // FILTRAR EXCLUSIVAMENTE: Gastos fijos que NO sean automáticos (!r.isAuto)
+      const manualFixedExpenses = state.recurringItems.filter(r => r.type === 'gasto' && !r.isAuto);
+
+      if (manualFixedExpenses.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:14px; color:var(--text-muted)">No tienes pagos de servicios manuales pendientes por gestionar.</td></tr>`;
+        return;
+      }
+
+      const occurrences = [];
+      manualFixedExpenses.forEach(rec => {
+        rec.dueDays.forEach(day => {
+          const occId = `${rec.id}_occ_${day}`;
+          const paidTx = state.transactions.find(tx => tx.recurringId === occId && tx.date.startsWith(currentMonthStr));
+          const diffDays = day - currentDay;
+
+          occurrences.push({
+            rec,
+            day,
+            occId,
+            paidTx,
+            diffDays
+          });
+        });
+      });
+
+      occurrences.sort((a, b) => {
+        if (Boolean(a.paidTx) !== Boolean(b.paidTx)) {
+          return a.paidTx ? 1 : -1;
+        }
+        return a.day - b.day;
+      });
+
+      occurrences.forEach(item => {
+        const { rec, day, occId, paidTx, diffDays } = item;
+        const accName = state.accounts.find(a => a.id === rec.accountId)?.name || 'Cuenta por defecto';
+
+        let statusBadge = '';
+        let actionBtn = '';
+
+        if (paidTx) {
+          statusBadge = `<span class="tag tag-paid">✓ Pagado (${paidTx.date})</span>`;
+          actionBtn = `<button class="btn btn-warning" style="padding: 3px 8px; font-size: 0.75rem;" onclick="unpayRecurring('${paidTx.id}')">Desmarcar</button>`;
+        } else {
+          if (diffDays < 0) {
+            statusBadge = `<span class="tag tag-due-today">⚠️ Vencido (Día ${day})</span>`;
+          } else if (diffDays === 0) {
+            statusBadge = `<span class="tag tag-due-today">🚨 Vence Hoy (Día ${day})</span>`;
+          } else if (diffDays <= 3) {
+            statusBadge = `<span class="tag tag-due-soon">⏰ Vence en ${diffDays} día(s)</span>`;
+          } else {
+            statusBadge = `<span class="tag tag-due-ok">📅 Día ${day} (${diffDays} días)</span>`;
+          }
+          actionBtn = `<button class="btn btn-success" style="padding: 3px 8px; font-size: 0.75rem;" onclick="quickPayRecurring('${rec.id}', ${day})">Pagar Ahora</button>`;
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${rec.name}</strong></td>
+          <td style="color:var(--text-muted); font-size:0.82rem;">${accName}</td>
+          <td>Día ${day} de este mes</td>
+          <td style="font-weight:600; color:var(--danger);">${formatCOP(rec.amount)}</td>
+          <td>${statusBadge}</td>
+          <td style="text-align: right;">${actionBtn}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderRecurringTab() {
+      const tbody = document.getElementById('recurringTableBody');
+      tbody.innerHTML = '';
+
+      const currentDay = new Date().getDate();
+      const currentMonthStr = new Date().toISOString().slice(0, 7);
+
+      if (state.recurringItems.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-muted)">No tienes ingresos o gastos fijos programados.</td></tr>`;
+        return;
+      }
+
+      state.recurringItems.forEach(rec => {
+        const isIncome = rec.type === 'ingreso';
+        const isQuincenal = rec.frequency === 'quincenal';
+
+        rec.dueDays.forEach((day, index) => {
+          const occId = `${rec.id}_occ_${day}`;
+          const occLabel = isQuincenal ? `Quincena (Día ${day})` : `Día ${day} de cada mes`;
+
+          const paidTx = state.transactions.find(tx => 
+            tx.recurringId === occId &&
+            tx.date.startsWith(currentMonthStr)
+          );
+
+          let statusBadge = '';
+          let actionBtn = '';
+
+          if (paidTx) {
+            statusBadge = `<span class="tag tag-paid">✓ ${isIncome ? 'Cobrado' : 'Pagado'} (${paidTx.date})</span>`;
+            actionBtn = `<button class="btn btn-warning" style="padding: 4px 8px; font-size: 0.75rem;" onclick="unpayRecurring('${paidTx.id}')">Desmarcar</button>`;
+          } else {
+            const diffDays = day - currentDay;
+            if (diffDays < 0) {
+              statusBadge = `<span class="tag tag-due-today">⚠️ Pasado (Día ${day})</span>`;
+            } else if (diffDays === 0) {
+              statusBadge = `<span class="tag tag-due-today">🚨 ${isIncome ? 'Cobro' : 'Vencimiento'} Hoy</span>`;
+            } else if (diffDays <= 3) {
+              statusBadge = `<span class="tag tag-due-soon">⏰ Próximo en ${diffDays} día(s)</span>`;
+            } else {
+              statusBadge = `<span class="tag tag-due-ok">📅 Día ${day} (${diffDays} días)</span>`;
+            }
+
+            if (rec.isAuto) {
+              actionBtn = `<span class="tag tag-auto">⚡ Automático</span>`;
+            } else {
+              actionBtn = `<button class="btn btn-success" style="padding: 4px 8px; font-size: 0.75rem;" onclick="quickPayRecurring('${rec.id}', ${day})">Marcar ${isIncome ? 'Cobrado' : 'Pagado'}</button>`;
+            }
+          }
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>
+              <strong>${rec.name}</strong> 
+              ${isQuincenal ? `<small style="color:var(--text-muted)">(${index === 0 ? '1ra Q' : '2da Q'})</small>` : ''}
+              ${rec.isAuto ? '<span class="tag tag-auto" style="font-size:0.65rem; padding:1px 5px; margin-left:4px;">AUTO</span>' : ''}
+            </td>
+            <td><span class="tag ${isIncome ? 'tag-income' : 'tag-expense'}">${isIncome ? 'INGRESO' : 'GASTO'}</span></td>
+            <td>${occLabel}</td>
+            <td style="font-weight:600; color:${isIncome ? 'var(--success)' : 'var(--text-main)'};">${formatCOP(rec.amount)}</td>
+            <td>${statusBadge}</td>
+            <td style="text-align: right; display: flex; justify-content: flex-end; gap: 6px;">
+              ${actionBtn}
+              ${index === 0 ? `
+                <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="editRecurringItem('${rec.id}')">✏️</button>
+                <button class="btn btn-danger" onclick="deleteRecurringItem('${rec.id}')">✕</button>
+              ` : ''}
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
+    }
+
+    function checkReminders() {
+      const currentDay = new Date().getDate();
+      const currentMonthStr = new Date().toISOString().slice(0, 7);
+
+      const pendingUrgent = [];
+
+      // Alertar exclusivamente de acciones que requieran intervención manual
+      state.recurringItems.filter(r => !r.isAuto).forEach(rec => {
+        rec.dueDays.forEach(day => {
+          const occId = `${rec.id}_occ_${day}`;
+          const isDone = state.transactions.some(tx => tx.recurringId === occId && tx.date.startsWith(currentMonthStr));
+          const diffDays = day - currentDay;
+          if (!isDone && diffDays >= 0 && diffDays <= 3) {
+            pendingUrgent.push({ name: `${rec.name} (Día ${day})`, type: rec.type });
+          }
+        });
+      });
+
+      const banner = document.getElementById('quickReminderBanner');
+      const text = document.getElementById('reminderBannerText');
+
+      if (pendingUrgent.length > 0) {
+        text.innerHTML = `🔔 <strong>Recordatorio de Pagos Pendientes:</strong> Tienes <strong>${pendingUrgent.length}</strong> obligación(es) manual(es) por vencer en los próximos días: ${pendingUrgent.map(p => p.name).join(', ')}.`;
+        banner.style.display = 'flex';
+      } else {
+        banner.style.display = 'none';
+      }
+    }
+
+    function renderAnalytics() {
+      const selectedMonth = document.getElementById('filterMonth').value;
+      const monthTx = state.transactions.filter(tx => !selectedMonth || tx.date.startsWith(selectedMonth));
+
+      const totalInc = monthTx.filter(t => t.type === 'ingreso').reduce((a, b) => a + Number(b.amount), 0);
+      const totalExp = monthTx.filter(t => t.type === 'gasto').reduce((a, b) => a + Number(b.amount), 0);
+      const maxVal = Math.max(totalInc, totalExp, 1);
+
+      const chartCont = document.getElementById('analyticsChartContainer');
+      chartCont.innerHTML = `
+        <div class="bar-group">
+          <div class="bar-labels">
+            <span>🟢 Total Ingresos Ejecutados</span>
+            <strong>${formatCOP(totalInc)}</strong>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill bar-income" style="width: ${(totalInc / maxVal) * 100}%;"></div>
+          </div>
+        </div>
+
+        <div class="bar-group">
+          <div class="bar-labels">
+            <span>🔴 Total Gastos Ejecutados</span>
+            <strong>${formatCOP(totalExp)}</strong>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill bar-expense" style="width: ${(totalExp / maxVal) * 100}%;"></div>
+          </div>
+        </div>
+      `;
+
+      const budgetCont = document.getElementById('budgetProgressContainer');
+      budgetCont.innerHTML = '';
+
+      const expenseCats = state.categories.filter(c => c.type === 'gasto');
+      const spentByCat = {};
+      monthTx.filter(t => t.type === 'gasto').forEach(t => {
+        spentByCat[t.categoryId] = (spentByCat[t.categoryId] || 0) + Number(t.amount);
+      });
+
+      if (expenseCats.length === 0) {
+        budgetCont.innerHTML = `<p style="color:var(--text-muted);">No hay categorías de gasto configuradas.</p>`;
+        return;
+      }
+
+      expenseCats.forEach(cat => {
+        const spent = spentByCat[cat.id] || 0;
+        const budget = Number(cat.budget) || 0;
+        const hasBudget = budget > 0;
+        const percent = hasBudget ? Math.min((spent / budget) * 100, 100) : 0;
+        const rawPercent = hasBudget ? ((spent / budget) * 100).toFixed(0) : 0;
+
+        let barClass = 'bar-budget-ok';
+        if (hasBudget && rawPercent >= 100) barClass = 'bar-budget-danger';
+        else if (hasBudget && rawPercent >= 80) barClass = 'bar-budget-warn';
+
+        const card = document.createElement('div');
+        card.className = 'budget-card';
+        card.innerHTML = `
+          <div class="bar-labels">
+            <strong>${cat.name}</strong>
+            <span>${formatCOP(spent)} ${hasBudget ? `/ ${formatCOP(budget)} (${rawPercent}%)` : '<small style="color:var(--text-muted)">(Sin tope)</small>'}</span>
+          </div>
+          ${hasBudget ? `
+          <div class="bar-track">
+            <div class="bar-fill ${barClass}" style="width: ${percent}%;"></div>
+          </div>` : ''}
+        `;
+        budgetCont.appendChild(card);
+      });
+    }
+
+    function renderRecommendations() {
+      const currentMonthStr = new Date().toISOString().slice(0, 7);
+      const listEl = document.getElementById('recommendationList');
+      listEl.innerHTML = '';
+
+      const monthTx = state.transactions.filter(tx => tx.date.startsWith(currentMonthStr));
+      const totalIncome = monthTx.filter(tx => tx.type === 'ingreso').reduce((a, b) => a + Number(b.amount), 0);
+      const totalExpense = monthTx.filter(tx => tx.type === 'gasto').reduce((a, b) => a + Number(b.amount), 0);
+
+      let projectedInc = 0;
+      let projectedExp = 0;
+      state.recurringItems.forEach(r => {
+        const factor = (r.frequency === 'quincenal') ? 2 : 1;
+        if (r.type === 'ingreso') projectedInc += Number(r.amount) * factor;
+        if (r.type === 'gasto') projectedExp += Number(r.amount) * factor;
+      });
+
+      const recommendations = [];
+
+      if (projectedInc > 0) {
+        const fixedRatio = (projectedExp / projectedInc) * 100;
+        const remainingLiquidity = projectedInc - projectedExp;
+        if (fixedRatio > 55) {
+          recommendations.push({
+            type: 'danger',
+            title: '⚠️ Alta proporción de Gastos Fijos vs. Ingreso Fijo',
+            desc: `Tus compromisos fijos (${formatCOP(projectedExp)}) absorben el <strong>${fixedRatio.toFixed(1)}%</strong> de tus ingresos fijos proyectados (${formatCOP(projectedInc)}). Te quedan <strong>${formatCOP(remainingLiquidity)}</strong> para gastos variables y ahorro.`
+          });
+        } else {
+          recommendations.push({
+            type: 'success',
+            title: '✅ Estructura de Ingresos/Gastos Fijos Saludable',
+            desc: `Tus gastos fijos ocupan el <strong>${fixedRatio.toFixed(1)}%</strong> de tu ingreso fijo quincenal/mensual, dejando un margen libre estimado de <strong>${formatCOP(remainingLiquidity)}</strong>.`
+          });
+        }
+      }
+
+      const expenseByCategory = {};
+      monthTx.filter(t => t.type === 'gasto').forEach(t => {
+        expenseByCategory[t.categoryId] = (expenseByCategory[t.categoryId] || 0) + Number(t.amount);
+      });
+
+      state.categories.filter(c => c.type === 'gasto' && Number(c.budget) > 0).forEach(cat => {
+        const spent = expenseByCategory[cat.id] || 0;
+        const budget = Number(cat.budget);
+        if (spent > budget) {
+          recommendations.push({
+            type: 'danger',
+            title: `🚨 Presupuesto excedido en ${cat.name}`,
+            desc: `Has gastado <strong>${formatCOP(spent)}</strong> superando el tope establecido de <strong>${formatCOP(budget)}</strong> por <strong>${formatCOP(spent - budget)}</strong>.`
+          });
+        } else if (spent >= budget * 0.8) {
+          recommendations.push({
+            type: 'warning',
+            title: `⚠️ Límite cercano en ${cat.name}`,
+            desc: `Has ejecutado el <strong>${((spent / budget) * 100).toFixed(0)}%</strong> de tu presupuesto de ${cat.name} (${formatCOP(spent)} de ${formatCOP(budget)}).`
+          });
+        }
+      });
+
+      if (totalIncome > 0 && totalExpense > totalIncome) {
+        recommendations.push({
+          type: 'danger',
+          title: '🚨 Déficit en el mes (Gastos > Ingresos)',
+          desc: `Tus gastos ejecutados superan los ingresos cobrados por <strong>${formatCOP(totalExpense - totalIncome)}</strong>.`
+        });
+      }
+
+      const creditAccounts = state.accounts.filter(a => a.type === 'credito');
+      let creditSpending = 0;
+      monthTx.filter(t => t.type === 'gasto' && creditAccounts.some(c => c.id === t.accountId)).forEach(t => creditSpending += Number(t.amount));
+
+      if (creditSpending > 0) {
+        recommendations.push({
+          type: 'warning',
+          title: '💳 Tarjetas de Crédito activas en el mes',
+          desc: `Llevas consumos por <strong>${formatCOP(creditSpending)}</strong> a crédito. Cancela la totalidad en la quincena más próxima para evitar costos financieros.`
+        });
+      }
+
+      recommendations.forEach(rec => {
+        const item = document.createElement('div');
+        item.className = `rec-item rec-${rec.type}`;
+        item.innerHTML = `
+          <div class="rec-title">${rec.title}</div>
+          <div class="rec-desc">${rec.desc}</div>
+        `;
+        listEl.appendChild(item);
+      });
+    }
+
+    function renderSettings() {
+      const accBalances = {};
+      state.accounts.forEach(a => accBalances[a.id] = Number(a.initialBalance) || 0);
+      state.transactions.forEach(tx => {
+        if (tx.type === 'ingreso' && accBalances[tx.accountId] !== undefined) accBalances[tx.accountId] += Number(tx.amount);
+        if (tx.type === 'gasto' && accBalances[tx.accountId] !== undefined) accBalances[tx.accountId] -= Number(tx.amount);
+        if (tx.type === 'transferencia') {
+          if (accBalances[tx.accountId] !== undefined) accBalances[tx.accountId] -= Number(tx.amount);
+          if (accBalances[tx.targetAccountId] !== undefined) accBalances[tx.targetAccountId] += Number(tx.amount);
+        }
+      });
+
+      const accBody = document.getElementById('accountsTableBody');
+      accBody.innerHTML = '';
+      state.accounts.forEach(acc => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${acc.name}</strong></td>
+          <td style="color:var(--text-muted); text-transform:capitalize;">${acc.type}</td>
+          <td><strong>${formatCOP(accBalances[acc.id] || 0)}</strong></td>
+          <td style="text-align:right;">
+            <button class="btn btn-danger" onclick="deleteAccount('${acc.id}')">✕</button>
+          </td>
+        `;
+        accBody.appendChild(tr);
+      });
+
+      const catBody = document.getElementById('categoriesTableBody');
+      catBody.innerHTML = '';
+      state.categories.forEach(cat => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${cat.name}</td>
+          <td><span class="tag ${cat.type === 'ingreso' ? 'tag-income' : 'tag-expense'}">${cat.type.toUpperCase()}</span></td>
+          <td>${cat.type === 'gasto' && cat.budget > 0 ? formatCOP(cat.budget) : '<span style="color:var(--text-muted)">-</span>'}</td>
+          <td style="text-align:right;">
+            <button class="btn btn-danger" onclick="deleteCategory('${cat.id}')">✕</button>
+          </td>
+        `;
+        catBody.appendChild(tr);
+      });
+    }
+
+    // -------------------------------------------------------------
+    // 6. CONTROLADORES DE EVENTOS & EDICIÓN
+    // -------------------------------------------------------------
+    function handleTxSubmit(e) {
+      e.preventDefault();
+      const amount = parseFloat(document.getElementById('txAmount').value);
+      const txType = document.getElementById('txType').value;
+      const accountId = document.getElementById('txAccount').value;
+      const targetAccountId = document.getElementById('txTargetAccount').value;
+
+      if (!amount || amount <= 0) return;
+
+      if (txType === 'transferencia' && accountId === targetAccountId) {
+        alert("La cuenta de origen y la cuenta de destino deben ser diferentes.");
+        return;
+      }
+
+      const newTx = {
+        id: "tx_" + Date.now(),
+        type: txType,
+        amount: amount,
+        accountId: accountId,
+        targetAccountId: txType === 'transferencia' ? targetAccountId : null,
+        categoryId: txType !== 'transferencia' ? document.getElementById('txCategory').value : null,
+        date: document.getElementById('txDate').value,
+        description: document.getElementById('txDesc').value.trim()
+      };
+
+      state.transactions.unshift(newTx);
+      StorageManager.saveData(state);
+      document.getElementById('txAmount').value = '';
+      document.getElementById('txDesc').value = '';
+      renderDashboard();
+    }
+
+    function deleteTransaction(id) {
+      if (confirm("¿Eliminar este movimiento?")) {
+        state.transactions = state.transactions.filter(t => t.id !== id);
+        StorageManager.saveData(state);
+        renderDashboard();
+        renderRecurringTab();
+      }
+    }
+
+    function handleRecurringSubmit(e) {
+      e.preventDefault();
+      const editId = document.getElementById('recEditId').value;
+      const type = document.getElementById('recType').value;
+      const frequency = document.getElementById('recFrequency').value;
+      const dueDay = parseInt(document.getElementById('recDueDay').value) || 15;
+      const isAuto = document.getElementById('recIsAuto').checked;
+
+      const dueDays = (frequency === 'quincenal') ? [15, 30] : [dueDay];
+
+      if (editId) {
+        const item = state.recurringItems.find(r => r.id === editId);
+        if (item) {
+          item.name = document.getElementById('recName').value.trim();
+          item.type = type;
+          item.frequency = frequency;
+          item.amount = parseFloat(document.getElementById('recAmount').value);
+          item.dueDays = dueDays;
+          item.accountId = document.getElementById('recAccount').value;
+          item.categoryId = document.getElementById('recCategory').value;
+          item.isAuto = isAuto;
+        }
+        cancelRecurringEdit();
+      } else {
+        const newRec = {
+          id: "rec_" + Date.now(),
+          name: document.getElementById('recName').value.trim(),
+          type: type,
+          frequency: frequency,
+          amount: parseFloat(document.getElementById('recAmount').value),
+          dueDays: dueDays,
+          accountId: document.getElementById('recAccount').value,
+          categoryId: document.getElementById('recCategory').value,
+          isAuto: isAuto
+        };
+        state.recurringItems.push(newRec);
+        document.getElementById('recurringForm').reset();
+        handleRecFrequencyChange();
+        updateRecurringCategorySelect();
+      }
+
+      StorageManager.saveData(state);
+      renderDashboard();
+      renderRecurringTab();
+    }
+
+    function editRecurringItem(id) {
+      const rec = state.recurringItems.find(r => r.id === id);
+      if (!rec) return;
+
+      document.getElementById('recEditId').value = rec.id;
+      document.getElementById('recurringFormTitle').textContent = `Editar Flujo: ${rec.name}`;
+      document.getElementById('recName').value = rec.name;
+      document.getElementById('recType').value = rec.type;
+      document.getElementById('recFrequency').value = rec.frequency;
+      document.getElementById('recAmount').value = rec.amount;
+      document.getElementById('recIsAuto').checked = Boolean(rec.isAuto);
+
+      updateRecurringCategorySelect();
+      document.getElementById('recAccount').value = rec.accountId;
+      document.getElementById('recCategory').value = rec.categoryId;
+
+      if (rec.frequency === 'quincenal') {
+        document.getElementById('grpRecDueDay').style.display = 'none';
+      } else {
+        document.getElementById('grpRecDueDay').style.display = 'flex';
+        document.getElementById('recDueDay').value = rec.dueDays[0] || 15;
+      }
+
+      document.getElementById('btnSubmitRec').textContent = 'Guardar Cambios';
+      document.getElementById('btnCancelRecEdit').style.display = 'inline-flex';
+
+      document.getElementById('recurringForm').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelRecurringEdit() {
+      document.getElementById('recEditId').value = '';
+      document.getElementById('recurringFormTitle').textContent = 'Programar Flujo Recurrente';
+      document.getElementById('recurringForm').reset();
+      document.getElementById('btnSubmitRec').textContent = 'Guardar Programación';
+      document.getElementById('btnCancelRecEdit').style.display = 'none';
+      handleRecFrequencyChange();
+      updateRecurringCategorySelect();
+    }
+
+    function quickPayRecurring(recId, day) {
+      const rec = state.recurringItems.find(r => r.id === recId);
+      if (!rec) return;
+
+      const today = new Date().toISOString().split('T')[0];
+      const isInc = rec.type === 'ingreso';
+
+      const newTx = {
+        id: "tx_" + Date.now(),
+        recurringId: `${rec.id}_occ_${day}`,
+        type: rec.type,
+        amount: rec.amount,
+        accountId: rec.accountId,
+        categoryId: rec.categoryId,
+        date: today,
+        description: `${isInc ? 'Cobro' : 'Pago'}: ${rec.name} (Día ${day})`
+      };
+
+      state.transactions.unshift(newTx);
+      StorageManager.saveData(state);
+      renderRecurringTab();
+      renderDashboard();
+    }
+
+    function unpayRecurring(txId) {
+      if (confirm("¿Deseas desmarcar este registro? Esto revertirá el movimiento contable.")) {
+        state.transactions = state.transactions.filter(t => t.id !== txId);
+        StorageManager.saveData(state);
+        renderRecurringTab();
+        renderDashboard();
+      }
+    }
+
+    function deleteRecurringItem(id) {
+      if (confirm("¿Eliminar esta programación de flujo recurrente?")) {
+        state.recurringItems = state.recurringItems.filter(r => r.id !== id);
+        StorageManager.saveData(state);
+        renderRecurringTab();
+        renderDashboard();
+      }
+    }
+
+    function handleAccountSubmit(e) {
+      e.preventDefault();
+      const newAcc = {
+        id: "acc_" + Date.now(),
+        name: document.getElementById('accName').value.trim(),
+        type: document.getElementById('accType').value,
+        initialBalance: parseFloat(document.getElementById('accBalance').value) || 0
+      };
+
+      state.accounts.push(newAcc);
+      StorageManager.saveData(state);
+      document.getElementById('accountForm').reset();
+      updateAllSelectors();
+      renderSettings();
+    }
+
+    function deleteAccount(id) {
+      if (state.accounts.length <= 1) {
+        alert("Debes tener al menos una cuenta registrada.");
+        return;
+      }
+      if (confirm("¿Eliminar esta cuenta?")) {
+        state.accounts = state.accounts.filter(a => a.id !== id);
+        StorageManager.saveData(state);
+        updateAllSelectors();
+        renderSettings();
+      }
+    }
+
+    function handleCategorySubmit(e) {
+      e.preventDefault();
+      const type = document.getElementById('catType').value;
+      const budget = type === 'gasto' ? (parseFloat(document.getElementById('catBudget').value) || 0) : 0;
+
+      const newCat = {
+        id: "cat_" + Date.now(),
+        name: document.getElementById('catName').value.trim(),
+        type: type,
+        budget: budget
+      };
+
+      state.categories.push(newCat);
+      StorageManager.saveData(state);
+      document.getElementById('categoryForm').reset();
+      updateAllSelectors();
+      renderSettings();
+    }
+
+    function deleteCategory(id) {
+      if (confirm("¿Eliminar esta categoría?")) {
+        state.categories = state.categories.filter(c => c.id !== id);
+        StorageManager.saveData(state);
+        updateAllSelectors();
+        renderSettings();
+      }
+    }
+
+    function handleImport(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      StorageManager.importBackup(file, (newData) => {
+        state = newData;
+        updateAllSelectors();
+        renderDashboard();
+        renderRecurringTab();
+        renderSettings();
+      });
+      e.target.value = '';
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('filterMonth').value = new Date().toISOString().slice(0, 7);
+      
+      const savedEndpoint = localStorage.getItem(CLOUD_URL_KEY);
+      if (savedEndpoint) {
+        const input = document.getElementById('apiEndpointInput');
+        if (input) input.value = savedEndpoint;
+        
+        // Intentar descargar datos frescos de Google Sheets
+        const cloudData = await fetchFromCloud(savedEndpoint);
+        if (cloudData) {
+          state = cloudData;
+          StorageManager.saveData(state, false);
+        }
+      }
+
+      updateAllSelectors();
+      handleTxTypeChange();
+      handleRecFrequencyChange();
+      renderDashboard();
+    });
+  </script>
+</body>
+</html>
